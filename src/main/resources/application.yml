@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: matchbox
+
+  datasource:
+    url: ${DATASOURCE_URI}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+server:
+  servlet:
+    context-path: /api/v1
+
