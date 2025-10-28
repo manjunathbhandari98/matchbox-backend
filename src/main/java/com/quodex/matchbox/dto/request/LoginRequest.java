@@ -1,4 +1,4 @@
-package com.quodex.matchbox.dto;
+package com.quodex.matchbox.dto.request;
 
 import com.quodex.matchbox.enums.UserRole;
 import lombok.Data;

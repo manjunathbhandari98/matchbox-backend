@@ -1,8 +1,8 @@
 package com.quodex.matchbox.controller;
 
-import com.quodex.matchbox.dto.LoginRequest;
-import com.quodex.matchbox.dto.LoginResponse;
-import com.quodex.matchbox.dto.RegisterRequest;
+import com.quodex.matchbox.dto.request.LoginRequest;
+import com.quodex.matchbox.dto.response.LoginResponse;
+import com.quodex.matchbox.dto.request.RegisterRequest;
 import com.quodex.matchbox.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

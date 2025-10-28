@@ -1,15 +1,10 @@
-package com.quodex.matchbox.dto;
+package com.quodex.matchbox.dto.request;
 
 import com.quodex.matchbox.enums.UserRole;
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder

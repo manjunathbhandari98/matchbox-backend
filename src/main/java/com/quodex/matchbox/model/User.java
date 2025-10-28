@@ -27,6 +27,7 @@ public class User {
     private String username;
     @Column(unique = true, nullable = false)
     private String email;
+    private String bio;
     private String password;
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -38,4 +39,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private UserSettings settings;
+
 }

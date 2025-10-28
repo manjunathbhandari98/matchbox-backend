@@ -1,7 +1,8 @@
 package com.quodex.matchbox.Mapper;
 
-import com.quodex.matchbox.dto.LoginResponse;
-import com.quodex.matchbox.dto.RegisterRequest;
+import com.quodex.matchbox.dto.response.LoginResponse;
+import com.quodex.matchbox.dto.request.RegisterRequest;
+import com.quodex.matchbox.dto.response.UserResponse;
 import com.quodex.matchbox.enums.UserRole;
 import com.quodex.matchbox.model.User;
 
@@ -26,4 +27,21 @@ public class UserMapper {
                 .token(token)
                 .build();
     }
+
+    public static UserResponse toUserResponse(User user){
+        return UserResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .lastSeen(user.getLastSeen())
+                .role(user.getRole())
+                .email(user.getEmail())
+                .active(user.isActive())
+                .bio(user.getBio())
+                .settings(user.getSettings() != null
+                        ? UserSettingsMapper.toResponse(user.getSettings())
+                        : null)
+                .build();
+    }
+
 }
