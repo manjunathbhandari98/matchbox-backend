@@ -7,7 +7,8 @@ import java.util.*;
 
 @Entity
 @Table(name = "teams")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -24,16 +25,8 @@ public class Team {
     private String avatar;
     private String createdBy;
 
-    @ElementCollection
-    @CollectionTable(name = "team_members", joinColumns = @JoinColumn(name = "team_id"))
-    @Column(name = "user_id")
-    private Set<String> members = new HashSet<>();
-
-    @ElementCollection
-    @CollectionTable(name = "team_roles", joinColumns = @JoinColumn(name = "team_id"))
-    @MapKeyColumn(name = "user_id")
-    @Column(name = "role")
-    private Map<String, String> roles = new HashMap<>();
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TeamMember> members = new ArrayList<>();
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Project> projects = new ArrayList<>();

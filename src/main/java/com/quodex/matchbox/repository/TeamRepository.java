@@ -16,4 +16,5 @@ public interface TeamRepository extends JpaRepository<Team, String> {
     List<Team> findTeamsByMemberId(@Param("userId") String userId);
 
 
+
 }

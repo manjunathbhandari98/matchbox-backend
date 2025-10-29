@@ -5,7 +5,10 @@ import com.quodex.matchbox.dto.request.RegisterRequest;
 import com.quodex.matchbox.dto.request.UpdatePasswordRequest;
 import com.quodex.matchbox.dto.request.UserRequest;
 import com.quodex.matchbox.dto.response.LoginResponse;
+import com.quodex.matchbox.dto.response.SearchUserResponse;
 import com.quodex.matchbox.dto.response.UserResponse;
+
+import java.util.List;
 
 public interface UserService {
     String registerUser(RegisterRequest request);
@@ -18,4 +21,5 @@ public interface UserService {
 
     String updatePassword(String email, UpdatePasswordRequest request);
 
+    List<SearchUserResponse> searchUser(String query, String currentUserId);
 }

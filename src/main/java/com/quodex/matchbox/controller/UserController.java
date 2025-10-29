@@ -1,12 +1,15 @@
 package com.quodex.matchbox.controller;
 import com.quodex.matchbox.dto.request.UpdatePasswordRequest;
 import com.quodex.matchbox.dto.request.UserRequest;
+import com.quodex.matchbox.dto.response.SearchUserResponse;
 import com.quodex.matchbox.dto.response.UserResponse;
 import com.quodex.matchbox.repository.UserRepository;
 import com.quodex.matchbox.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -38,6 +41,13 @@ public class UserController {
     public ResponseEntity<String> updatePassword(@PathVariable String email,
                                             @RequestBody UpdatePasswordRequest request){
         return ResponseEntity.ok(userService.updatePassword(email,request));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<SearchUserResponse>> searchUsers(
+            @RequestParam("q") String query,
+            @RequestParam("currentUserId") String currentUserId) {
+        return ResponseEntity.ok(userService.searchUser(query, currentUserId));
     }
 
 }

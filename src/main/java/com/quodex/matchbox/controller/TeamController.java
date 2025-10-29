@@ -1,13 +1,17 @@
 package com.quodex.matchbox.controller;
 
+import com.quodex.matchbox.Mapper.UserMapper;
 import com.quodex.matchbox.dto.request.TeamRequest;
 import com.quodex.matchbox.dto.response.TeamResponse;
+import com.quodex.matchbox.dto.response.UserResponse;
+import com.quodex.matchbox.model.User;
 import com.quodex.matchbox.service.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/team")
@@ -30,4 +34,38 @@ public class TeamController {
         List<TeamResponse> teams = teamService.getTeamForUser(userId);
         return ResponseEntity.ok(teams);
     }
+
+    @PostMapping("/{teamId}/invite")
+    public ResponseEntity<String> inviteMemberToTeam(
+            @PathVariable String teamId,
+            @RequestParam String userId) {
+        return ResponseEntity.ok(teamService.inviteMemberToTeam(teamId, userId));
+    }
+
+    @PostMapping("/invite")
+    public ResponseEntity<String> inviteUserToPlatform(
+            @RequestParam String inviterId,
+            @RequestParam String email) {
+        return ResponseEntity.ok(teamService.inviteUserToWorkspace(inviterId, email));
+    }
+
+    @PostMapping("/invitations/{invitationId}/accept")
+    public ResponseEntity<String> acceptInvitation(
+            @PathVariable String invitationId,
+            @RequestParam String receiverId
+    ) {
+        return ResponseEntity.ok(teamService.acceptInvitation(invitationId, receiverId));
+    }
+
+    @GetMapping("/accepted-members/{senderId}")
+    public ResponseEntity<List<UserResponse>> getAcceptedMembersOfSender(@PathVariable String senderId) {
+        List<User> members = teamService.getAcceptedMembersOfInviter(senderId);
+
+        List<UserResponse> response = members.stream()
+                .map(UserMapper::toUserResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
 }

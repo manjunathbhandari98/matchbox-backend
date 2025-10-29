@@ -4,10 +4,14 @@ import com.quodex.matchbox.Mapper.UserMapper;
 import com.quodex.matchbox.Mapper.UserSettingsMapper;
 import com.quodex.matchbox.dto.request.*;
 import com.quodex.matchbox.dto.response.LoginResponse;
+import com.quodex.matchbox.dto.response.SearchUserResponse;
 import com.quodex.matchbox.dto.response.UserResponse;
+import com.quodex.matchbox.enums.InvitationStatus;
 import com.quodex.matchbox.jwt.JwtUtil;
+import com.quodex.matchbox.model.Invitation;
 import com.quodex.matchbox.model.User;
 import com.quodex.matchbox.model.UserSettings;
+import com.quodex.matchbox.repository.InvitationRepository;
 import com.quodex.matchbox.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -25,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final InvitationRepository invitationRepository;
 
     @Override
     public String registerUser(RegisterRequest request) {
@@ -127,6 +134,34 @@ public class UserServiceImpl implements UserService {
          return "Password Updated";
     }
 
+    @Override
+    public List<SearchUserResponse> searchUser(String query, String currentUserId) {
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Current user not found"));
+
+        List<User> users = userRepository.findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
+
+        return users.stream()
+                .filter(user -> !user.getId().equals(currentUserId)) // exclude self
+                .map(user -> {
+                    InvitationStatus status = invitationRepository.findByInviterAndInvitedUser(currentUser, user)
+                            .map(Invitation::getStatus)
+                            .orElse(InvitationStatus.NONE); // Custom NONE enum
+
+                    return SearchUserResponse.builder()
+                            .fullName(user.getFullName())
+                            .username(user.getUsername())
+                            .email(user.getEmail())
+                            .avatar(user.getAvatar())
+                            .bio(user.getBio())
+                            .active(user.isActive())
+                            .lastSeen(user.getLastSeen())
+                            .role(user.getRole())
+                            .invitationStatus(status)
+                            .build();
+                })
+                .toList();
+    }
 
 
     private void checkUsernameAvailability(String username) {
