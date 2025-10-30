@@ -1,6 +1,7 @@
 package com.quodex.matchbox.model;
 
 import com.quodex.matchbox.enums.InvitationStatus;
+import com.quodex.matchbox.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,10 @@ public class TeamMember {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "team_role")
+    private Role teamRole;
 
     @Enumerated(EnumType.STRING)
     private InvitationStatus status = InvitationStatus.PENDING;

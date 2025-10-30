@@ -2,8 +2,10 @@ package com.quodex.matchbox.controller;
 
 import com.quodex.matchbox.Mapper.UserMapper;
 import com.quodex.matchbox.dto.request.TeamRequest;
+import com.quodex.matchbox.dto.response.MemberResponse;
 import com.quodex.matchbox.dto.response.TeamResponse;
 import com.quodex.matchbox.dto.response.UserResponse;
+import com.quodex.matchbox.model.Invitation;
 import com.quodex.matchbox.model.User;
 import com.quodex.matchbox.service.TeamService;
 import lombok.RequiredArgsConstructor;
@@ -57,15 +59,16 @@ public class TeamController {
         return ResponseEntity.ok(teamService.acceptInvitation(invitationId, receiverId));
     }
 
-    @GetMapping("/accepted-members/{senderId}")
-    public ResponseEntity<List<UserResponse>> getAcceptedMembersOfSender(@PathVariable String senderId) {
-        List<User> members = teamService.getAcceptedMembersOfInviter(senderId);
+    @GetMapping("/members/{senderId}")
+    public ResponseEntity<List<MemberResponse>> getMembersOfSender(@PathVariable String senderId) {
+        List<Invitation> invitations = teamService.getAcceptedMembersOfInviter(senderId);
 
-        List<UserResponse> response = members.stream()
-                .map(UserMapper::toUserResponse)
+        List<MemberResponse> response = invitations.stream()
+                .map(UserMapper::toMemberResponseFromInvitation)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
     }
+
 
 }

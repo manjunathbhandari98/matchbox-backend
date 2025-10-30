@@ -20,8 +20,7 @@ public class TeamResponse {
     private String description;
     private String avatar;
     private String createdBy;
-    private Set<UserResponse> members = new HashSet<>();
-    private Map<String, String> roles = new HashMap<>();
+    private List<MemberResponse> members;
     private List<ProjectSummaryResponse> projects = new ArrayList<>();
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

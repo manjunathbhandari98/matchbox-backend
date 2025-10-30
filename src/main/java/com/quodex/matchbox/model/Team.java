@@ -1,10 +1,10 @@
 package com.quodex.matchbox.model;
 
+import com.quodex.matchbox.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.*;
-
 @Entity
 @Table(name = "teams")
 @Getter

@@ -1,7 +1,7 @@
 package com.quodex.matchbox.controller;
 import com.quodex.matchbox.dto.request.UpdatePasswordRequest;
 import com.quodex.matchbox.dto.request.UserRequest;
-import com.quodex.matchbox.dto.response.SearchUserResponse;
+import com.quodex.matchbox.dto.response.MemberResponse;
 import com.quodex.matchbox.dto.response.UserResponse;
 import com.quodex.matchbox.repository.UserRepository;
 import com.quodex.matchbox.service.UserService;
@@ -44,7 +44,7 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<SearchUserResponse>> searchUsers(
+    public ResponseEntity<List<MemberResponse>> searchUsers(
             @RequestParam("q") String query,
             @RequestParam("currentUserId") String currentUserId) {
         return ResponseEntity.ok(userService.searchUser(query, currentUserId));

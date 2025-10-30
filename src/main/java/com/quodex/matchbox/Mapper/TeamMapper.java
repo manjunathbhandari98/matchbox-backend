@@ -1,26 +1,27 @@
 package com.quodex.matchbox.Mapper;
 import com.quodex.matchbox.dto.request.TeamRequest;
+import com.quodex.matchbox.dto.response.MemberResponse;
 import com.quodex.matchbox.dto.response.ProjectSummaryResponse;
 import com.quodex.matchbox.dto.response.TeamResponse;
+import com.quodex.matchbox.dto.response.UserResponse;
 import com.quodex.matchbox.model.Team;
+
+import java.util.List;
 import java.util.stream.Collectors;
 import com.quodex.matchbox.model.TeamMember;
 import java.util.Collections;
-
 public class TeamMapper {
 
-    // Convert DTO → Entity
     public static Team toEntity(TeamRequest request) {
         return Team.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .avatar(request.getAvatar())
                 .createdBy(request.getCreatedBy())
-                .projects(request.getProjects())
+                // Don't map members here - they'll be handled separately
                 .build();
     }
 
-    // Convert Entity → DTO
     public static TeamResponse toResponse(Team team) {
         return TeamResponse.builder()
                 .id(team.getId())
@@ -29,22 +30,26 @@ public class TeamMapper {
                 .avatar(team.getAvatar())
                 .createdBy(team.getCreatedBy())
                 .members(
-                        team.getMembers() != null
-                                ? team.getMembers().stream()
-                                .map(TeamMember::getUser) // get User from TeamMember
-                                .map(UserMapper::toUserResponse) // map User → UserResponse
-                                .collect(Collectors.toSet())
-                                : Collections.emptySet()
-                )
-                .projects(
-                        team.getProjects() != null
-                                ? team.getProjects().stream()
-                                .map(p -> new ProjectSummaryResponse(p.getId(), p.getName(), p.getSlug()))
-                                .collect(Collectors.toList())
-                                : Collections.emptyList()
+                        team.getMembers().stream()
+                                .map(tm -> MemberResponse.builder()
+                                        .id(tm.getUser().getId())
+                                        .fullName(tm.getUser().getFullName())
+                                        .username(tm.getUser().getUsername())
+                                        .email(tm.getUser().getEmail())
+                                        .avatar(tm.getUser().getAvatar())
+                                        .bio(tm.getUser().getBio())
+                                        .active(tm.getUser().isActive())
+                                        .lastSeen(tm.getUser().getLastSeen())
+                                        .role(tm.getUser().getRole()) // system role
+                                        .teamRole(tm.getTeamRole())
+                                        .invitationStatus(tm.getStatus())
+                                        .build()
+                                )
+                                .toList()
                 )
                 .createdAt(team.getCreatedAt())
                 .updatedAt(team.getUpdatedAt())
                 .build();
     }
+
 }

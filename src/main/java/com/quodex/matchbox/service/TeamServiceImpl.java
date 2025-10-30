@@ -5,6 +5,7 @@ import com.quodex.matchbox.dto.request.TeamRequest;
 import com.quodex.matchbox.dto.response.TeamResponse;
 import com.quodex.matchbox.enums.InvitationStatus;
 import com.quodex.matchbox.enums.NotificationType;
+import com.quodex.matchbox.enums.Role;
 import com.quodex.matchbox.model.Invitation;
 import com.quodex.matchbox.model.Team;
 import com.quodex.matchbox.model.TeamMember;
@@ -16,9 +17,8 @@ import com.quodex.matchbox.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,43 +32,35 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public TeamResponse createTeam(TeamRequest request) {
-        // Convert DTO -> Entity
-        Team team = TeamMapper.toEntity(request);
-
-        // Validate creator
         if (request.getCreatedBy() == null || request.getCreatedBy().isBlank()) {
             throw new RuntimeException("CreatedBy field is required");
         }
 
-        // Validate and fetch members
-        List<User> validMembers = request.getMembers().stream()
-                .map(userId -> userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + userId)))
-                .toList();
-
-        if (validMembers.isEmpty()) {
-            throw new RuntimeException("No valid members found for this team");
-        }
-
-        // Save the team first
+        Team team = TeamMapper.toEntity(request);
         teamRepository.save(team);
 
-        // Create TeamMember entries
-        List<TeamMember> teamMembers = validMembers.stream()
-                .map(user -> TeamMember.builder()
-                        .team(team)
-                        .user(user)
-                        .status(InvitationStatus.ACCEPTED) // Since added directly while creating team
-                        .build())
+        List<TeamMember> teamMembers = request.getMembers().stream()
+                .map(m -> {
+                    User user = userRepository.findById(m.getId())
+                            .orElseThrow(() -> new RuntimeException("User not found: " + m.getId()));
+
+                    return TeamMember.builder()
+                            .team(team)
+                            .user(user)
+                            .teamRole(m.getRole()) // ✅ use team role from request
+                            .status(InvitationStatus.ACCEPTED)
+                            .invitedAt(LocalDateTime.now())
+                            .acceptedAt(LocalDateTime.now())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         teamMemberRepository.saveAll(teamMembers);
-
-        // Attach them to team for response mapping
         team.setMembers(teamMembers);
 
         return TeamMapper.toResponse(team);
     }
+
 
     @Override
     public List<TeamResponse> getTeams() {
@@ -197,16 +189,12 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public List<User> getAcceptedMembersOfInviter(String senderId) {
+    public List<Invitation> getAcceptedMembersOfInviter(String senderId) {
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Invitation> acceptedInvites =
-                invitationRepository.findByInviterAndStatus(sender, InvitationStatus.ACCEPTED);
-
-        return acceptedInvites.stream()
-                .map(Invitation::getInvitedUser)
-                .collect(Collectors.toList());
+        return invitationRepository.findByInviter(sender);
     }
+
 
 }

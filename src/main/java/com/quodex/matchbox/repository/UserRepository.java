@@ -1,6 +1,6 @@
 package com.quodex.matchbox.repository;
 
-import com.quodex.matchbox.dto.response.SearchUserResponse;
+import com.quodex.matchbox.dto.response.MemberResponse;
 import com.quodex.matchbox.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<User, String> {
             "LOWER(u.fullName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))")
-    List<SearchUserResponse> searchUsers(@Param("query") String query);
+    List<MemberResponse> searchUsers(@Param("query") String query);
 
     List<User> findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String query, String query1);
 }

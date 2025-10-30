@@ -4,7 +4,7 @@ import com.quodex.matchbox.Mapper.UserMapper;
 import com.quodex.matchbox.Mapper.UserSettingsMapper;
 import com.quodex.matchbox.dto.request.*;
 import com.quodex.matchbox.dto.response.LoginResponse;
-import com.quodex.matchbox.dto.response.SearchUserResponse;
+import com.quodex.matchbox.dto.response.MemberResponse;
 import com.quodex.matchbox.dto.response.UserResponse;
 import com.quodex.matchbox.enums.InvitationStatus;
 import com.quodex.matchbox.jwt.JwtUtil;
@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<SearchUserResponse> searchUser(String query, String currentUserId) {
+    public List<MemberResponse> searchUser(String query, String currentUserId) {
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
 
@@ -148,7 +148,7 @@ public class UserServiceImpl implements UserService {
                             .map(Invitation::getStatus)
                             .orElse(InvitationStatus.NONE); // Custom NONE enum
 
-                    return SearchUserResponse.builder()
+                    return MemberResponse.builder()
                             .fullName(user.getFullName())
                             .username(user.getUsername())
                             .email(user.getEmail())
