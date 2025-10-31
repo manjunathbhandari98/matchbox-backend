@@ -5,5 +5,7 @@ public enum Role {
     DEVELOPER,
     DESIGNER,
     TESTER,
-    MEMBER
+    MEMBER,
+    MANAGER,
+    OTHER
 }

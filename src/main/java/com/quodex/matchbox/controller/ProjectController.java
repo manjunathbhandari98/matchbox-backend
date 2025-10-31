@@ -20,7 +20,7 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.createProject(request));
     }
 
-    @GetMapping
+    @GetMapping("/user")
     public ResponseEntity<List<ProjectResponse>> getProjectsForUser(
             @RequestParam("userId") String userId
     ) {

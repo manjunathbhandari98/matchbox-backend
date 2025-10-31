@@ -20,7 +20,7 @@ public class Team {
 
     @Column(nullable = false, unique = true)
     private String name;
-
+    private String slug;
     private String description;
     private String avatar;
     private String createdBy;

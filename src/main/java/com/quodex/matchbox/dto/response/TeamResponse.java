@@ -18,6 +18,7 @@ public class TeamResponse {
     private String id;
     private String name;
     private String description;
+    private String slug;
     private String avatar;
     private String createdBy;
     private List<MemberResponse> members;

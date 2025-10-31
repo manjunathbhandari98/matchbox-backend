@@ -1,6 +1,7 @@
 package com.quodex.matchbox.service;
 
 import com.quodex.matchbox.Mapper.TeamMapper;
+import com.quodex.matchbox.dto.request.AddMemberRequest;
 import com.quodex.matchbox.dto.request.TeamRequest;
 import com.quodex.matchbox.dto.response.TeamResponse;
 import com.quodex.matchbox.enums.InvitationStatus;
@@ -14,9 +15,16 @@ import com.quodex.matchbox.repository.InvitationRepository;
 import com.quodex.matchbox.repository.TeamMemberRepository;
 import com.quodex.matchbox.repository.TeamRepository;
 import com.quodex.matchbox.repository.UserRepository;
+import com.quodex.matchbox.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +37,7 @@ public class TeamServiceImpl implements TeamService {
     private final TeamMemberRepository teamMemberRepository;
     private final InvitationRepository invitationRepository;
     private final NotificationService notificationService;
+    private final SlugUtils slugUtils;
 
     @Override
     public TeamResponse createTeam(TeamRequest request) {
@@ -37,6 +46,13 @@ public class TeamServiceImpl implements TeamService {
         }
 
         Team team = TeamMapper.toEntity(request);
+
+        String slug = slugUtils.generateUniqueSlug(
+                team.getName(),
+                teamRepository::existsBySlug
+        );
+
+        team.setSlug(slug);
         teamRepository.save(team);
 
         List<TeamMember> teamMembers = request.getMembers().stream()
@@ -47,7 +63,7 @@ public class TeamServiceImpl implements TeamService {
                     return TeamMember.builder()
                             .team(team)
                             .user(user)
-                            .teamRole(m.getRole()) // ✅ use team role from request
+                            .teamRole(m.getRole())
                             .status(InvitationStatus.ACCEPTED)
                             .invitedAt(LocalDateTime.now())
                             .acceptedAt(LocalDateTime.now())
@@ -90,6 +106,14 @@ public class TeamServiceImpl implements TeamService {
         return teams.stream()
                 .map(TeamMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public TeamResponse getTeamById(String teamId){
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team Not Found"));
+
+        return TeamMapper.toResponse(team);
     }
 
     @Override
@@ -194,6 +218,142 @@ public class TeamServiceImpl implements TeamService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return invitationRepository.findByInviter(sender);
+    }
+
+    @Override
+    public String deleteTeam(String creatorId, String teamId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        if (!team.getCreatedBy().equals(creatorId)) {
+            throw new RuntimeException("Only the team creator can delete this team");
+        }
+
+        teamRepository.delete(team);
+        return "Team deleted successfully";
+    }
+
+    @Override
+    public TeamResponse updateTeam(String teamId, String name, String description, MultipartFile avatar) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        team.setName(name);
+        team.setDescription(description);
+
+        // Handle avatar update
+        if (avatar != null) {
+            if (!avatar.isEmpty()) {
+                // Save new avatar file
+                try {
+                    String uploadDir = "uploads/avatars/";
+                    String fileName = UUID.randomUUID() + "_" + avatar.getOriginalFilename();
+                    Path filePath = Paths.get(uploadDir + fileName);
+
+                    Files.createDirectories(filePath.getParent());
+                    Files.write(filePath, avatar.getBytes());
+
+                    team.setAvatar("/" + uploadDir + fileName);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error saving avatar file: " + e.getMessage(), e);
+                }
+            } else {
+                // Avatar is explicitly empty → remove existing avatar
+                team.setAvatar(null);
+            }
+        }
+        // else avatar param is null → do not change the existing avatar
+
+        team.setSlug(slugUtils.generateUniqueSlug(name, teamRepository::existsBySlug));
+        team.setUpdatedAt(LocalDateTime.now());
+
+        teamRepository.save(team);
+        return TeamMapper.toResponse(team);
+    }
+
+    @Override
+    public String deleteTeamMember(String teamId, String memberId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        // Find the team member by userId
+        Optional<TeamMember> memberToRemove = team.getMembers().stream()
+                .filter(member -> member.getUser().getId().equals(memberId))
+                .findFirst();
+
+        if (memberToRemove.isEmpty()) {
+            return "Member not found in team";
+        }
+
+        // Delete from the TeamMemberRepository (important!)
+        teamMemberRepository.delete(memberToRemove.get());
+
+        // Optionally, update the team object too
+        team.getMembers().remove(memberToRemove.get());
+        teamRepository.save(team);
+
+        return "Member removed successfully";
+    }
+
+    public TeamResponse updateMemberRole(String teamId, String memberId, Role role){
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        // Find the team member by userId
+        TeamMember memberToUpdate = team.getMembers().stream()
+                .filter(member -> member.getUser().getId().equals(memberId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+//
+//        if (memberToUpdate.isEmpty()) {
+//            throw new RuntimeException("");
+//        }
+
+        memberToUpdate.setTeamRole(role);
+
+        teamMemberRepository.save(memberToUpdate);
+
+        team.setUpdatedAt(LocalDateTime.now());
+        teamRepository.save(team);
+
+        return TeamMapper.toResponse(team);
+
+    }
+
+    @Override
+    public TeamResponse addMemberToTeam(String teamId, AddMemberRequest request) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found"));
+
+        User user = userRepository.findById(request.getMemberId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        boolean alreadyMember = team.getMembers().stream()
+                .anyMatch(member -> member.getUser().getId().equals(request.getMemberId()));
+
+        if (alreadyMember) {
+            throw new RuntimeException("Member already exists");
+        }
+
+        TeamMember newMember = TeamMember.builder()
+                .team(team)
+                .user(user)
+                .teamRole(request.getRole()) // convert string to enum
+                .status(InvitationStatus.ACCEPTED)
+                .invitedAt(LocalDateTime.now())
+                .acceptedAt(LocalDateTime.now())
+                .build();
+
+        teamMemberRepository.save(newMember);
+
+        // Add to team's member list
+        team.getMembers().add(newMember);
+        team.setUpdatedAt(LocalDateTime.now());
+
+        // Save the team
+        teamRepository.save(team);
+
+        return TeamMapper.toResponse(team);
     }
 
 

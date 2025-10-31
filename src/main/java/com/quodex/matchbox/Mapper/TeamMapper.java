@@ -26,6 +26,7 @@ public class TeamMapper {
         return TeamResponse.builder()
                 .id(team.getId())
                 .name(team.getName())
+                .slug(team.getSlug())
                 .description(team.getDescription())
                 .avatar(team.getAvatar())
                 .createdBy(team.getCreatedBy())

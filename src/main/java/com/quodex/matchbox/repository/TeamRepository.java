@@ -12,9 +12,9 @@ public interface TeamRepository extends JpaRepository<Team, String> {
 
 //    List<Team> findByMembersContaining(String userId);
 
-    @Query("SELECT t FROM Team t JOIN t.members m WHERE m = :userId")
+    @Query("SELECT t FROM Team t JOIN t.members m WHERE m.user.id = :userId")
     List<Team> findTeamsByMemberId(@Param("userId") String userId);
 
 
-
+    boolean existsBySlug(String slug);
 }
