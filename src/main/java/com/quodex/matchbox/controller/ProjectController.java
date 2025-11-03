@@ -28,9 +28,16 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    @GetMapping("/team/{teamId}")
+    public ResponseEntity<List<ProjectResponse>> getProjectByTeam(@PathVariable String teamId){
+        List<ProjectResponse> projects = projectService.getProjectsByTeam(teamId);
+        return ResponseEntity.ok(projects);
+    }
+
     @PutMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable String projectId,
                                                          @RequestBody ProjectRequest request){
         return ResponseEntity.ok(projectService.updateProject(projectId,request));
     }
+
 }

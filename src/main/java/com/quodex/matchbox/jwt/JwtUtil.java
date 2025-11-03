@@ -18,7 +18,7 @@ public class JwtUtil {
     // The provided key is a simple string; we should treat it as a string to be encoded
     // to ensure it meets the cryptographic requirements.
     private final String jwtSecret = "Xiek393dkjJDXU8dj3372djxlJDOKD279djd93d33fdf2348A7B5C9D1E6F0A3B"; // Extended for better security compliance (32 bytes minimum for HS256)
-    private final long jwtExpirationMs = 86400000; // 24 hours
+    private final long jwtExpirationMs = 86400000*20; // 24 hours
 
     // Use SecretKey for the modern API
     private final SecretKey key;

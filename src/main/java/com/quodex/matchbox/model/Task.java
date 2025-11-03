@@ -43,9 +43,14 @@ public class Task {
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_to")
-    private User assignedTo;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "task_assigned_users",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> assignedTo = new ArrayList<>();
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
@@ -55,7 +60,7 @@ public class Task {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    // 🔹 Subtasks
+    //  Subtasks
     @OneToMany(mappedBy = "parentTask", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> subtasks = new ArrayList<>();
 
@@ -63,7 +68,7 @@ public class Task {
     @JoinColumn(name = "parent_task_id")
     private Task parentTask;
 
-    // 🔹 Tags & Attachments
+    //  Tags & Attachments
     @ElementCollection
     @CollectionTable(name = "task_tags", joinColumns = @JoinColumn(name = "task_id"))
     @Column(name = "tag")
@@ -72,11 +77,11 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskAttachment> attachments = new ArrayList<>();
 
-    // 🔹 Comments
+    //  Comments
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskComment> comments = new ArrayList<>();
 
-    // 🔹 Metadata
+    //  Metadata
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean archived = false;

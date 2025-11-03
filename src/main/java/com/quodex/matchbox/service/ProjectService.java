@@ -16,4 +16,6 @@ public interface ProjectService {
     ProjectResponse updateProject(String projectId, ProjectRequest request);
 
     void deleteProject(String projectId);
+
+    List<ProjectResponse> getProjectsByTeam(String teamId);
 }

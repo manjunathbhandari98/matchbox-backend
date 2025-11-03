@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SlugUtils {
 
-    public String generateUniqueSlug(String name, SlugExistenceChecker checker) {
+    public static String generateUniqueSlug(String name, SlugExistenceChecker checker) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Name cannot be null or empty for slug generation");
         }

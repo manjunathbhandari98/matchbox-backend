@@ -317,7 +317,6 @@ public class TeamServiceImpl implements TeamService {
         teamRepository.save(team);
 
         return TeamMapper.toResponse(team);
-
     }
 
     @Override

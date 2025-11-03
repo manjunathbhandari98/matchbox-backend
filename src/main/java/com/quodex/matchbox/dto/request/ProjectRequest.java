@@ -16,19 +16,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectRequest {
-
     private String name;
     private String slug;
     private String description;
     private String creatorId;
     private String teamId;
-
     private List<String> collaboratorIds;
-
     private ProjectStatus status = ProjectStatus.IN_PROGRESS;
     private ProjectPriority priority = ProjectPriority.LOW;
     private Visibility visibility = Visibility.PRIVATE;
-
     private LocalDateTime startDate;
     private LocalDateTime dueDate;
 }

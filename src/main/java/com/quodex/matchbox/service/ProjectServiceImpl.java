@@ -10,6 +10,7 @@ import com.quodex.matchbox.model.User;
 import com.quodex.matchbox.repository.ProjectRepository;
 import com.quodex.matchbox.repository.TeamRepository;
 import com.quodex.matchbox.repository.UserRepository;
+import com.quodex.matchbox.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -30,44 +32,38 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectResponse createProject(ProjectRequest request) {
-        log.info("Creating project with name: {}", request.getName());
-
         // Validate creator exists
         User creator = userRepository.findById(request.getCreatorId())
-                .orElseThrow(() -> new RuntimeException("Creator user not found with id: " + request.getCreatorId()));
+                .orElseThrow(() -> new RuntimeException("Creator not found with id: " + request.getCreatorId()));
 
-        // Build the project entity
+        // Build base entity
         Project project = ProjectMapper.toEntity(request);
 
-        // Set team if teamId is provided
+        // Ensure collaborators list is initialized
+        if (project.getCollaborators() == null) {
+            project.setCollaborators(new ArrayList<>());
+        }
+
+        // Generate slug
+        String slug = SlugUtils.generateUniqueSlug(request.getName(), projectRepository::existsBySlug);
+        project.setSlug(slug);
+
+        // Set team if provided
         if (request.getTeamId() != null && !request.getTeamId().isEmpty()) {
             Team team = teamRepository.findById(request.getTeamId())
                     .orElseThrow(() -> new RuntimeException("Team not found with id: " + request.getTeamId()));
             project.setTeam(team);
-            log.info("Associated project with team: {}", team.getId());
         }
 
-        // Fetch and attach collaborators
+        // Fetch collaborators
         if (request.getCollaboratorIds() != null && !request.getCollaboratorIds().isEmpty()) {
             List<User> collaborators = userRepository.findAllById(request.getCollaboratorIds());
-
-            if (collaborators.isEmpty()) {
-                log.warn("No collaborators found for the provided IDs");
-            } else {
-                log.info("Found {} collaborators", collaborators.size());
-
-                // Ensure collaborators list is initialized
-                if (project.getCollaborators() == null) {
-                    project.setCollaborators(new ArrayList<>());
-                }
-
-                // Clear and add all collaborators
-                project.getCollaborators().clear();
+            if (!collaborators.isEmpty()) {
                 project.getCollaborators().addAll(collaborators);
             }
         }
 
-        // Save the project
+        // Save project
         Project savedProject = projectRepository.save(project);
         log.info("Project created successfully with id: {}", savedProject.getId());
 
@@ -137,6 +133,17 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
 
         return ProjectMapper.toResponse(project);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProjectResponse> getProjectsByTeam(String teamId){
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team Not Found"));
+        List<Project> projects = projectRepository.findByTeam_Id(teamId);
+        return projects.stream()
+                .map(ProjectMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override

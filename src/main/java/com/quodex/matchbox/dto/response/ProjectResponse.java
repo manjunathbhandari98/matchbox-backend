@@ -25,7 +25,7 @@ public class ProjectResponse {
     private String creatorId;
     private String teamId;
 
-    private List<User> collaborators;
+    private List<CollaboratorResponse> collaborators;
 
     private ProjectStatus status;
     private ProjectPriority priority;

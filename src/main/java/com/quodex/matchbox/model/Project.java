@@ -132,20 +132,12 @@ public class Project {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Helper method to add collaborators
-    public void addCollaborator(User user) {
+    public List<User> getCollaborators() {
         if (this.collaborators == null) {
             this.collaborators = new ArrayList<>();
         }
-        if (!this.collaborators.contains(user)) {
-            this.collaborators.add(user);
-        }
+        return this.collaborators;
     }
 
-    // Helper method to remove collaborators
-    public void removeCollaborator(User user) {
-        if (this.collaborators != null) {
-            this.collaborators.remove(user);
-        }
-    }
+
 }

@@ -1,15 +1,16 @@
 package com.quodex.matchbox.Mapper;
 
 import com.quodex.matchbox.dto.request.ProjectRequest;
+import com.quodex.matchbox.dto.response.CollaboratorResponse;
 import com.quodex.matchbox.dto.response.ProjectResponse;
 import com.quodex.matchbox.model.Project;
 import com.quodex.matchbox.model.User;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ProjectMapper {
-
-
     public static Project toEntity(ProjectRequest dto) {
         return Project.builder()
                 .name(dto.getName())
@@ -32,7 +33,17 @@ public class ProjectMapper {
                 .description(project.getDescription())
                 .creatorId(project.getCreatorId())
                 .teamId(project.getTeam() != null ? project.getTeam().getId() : null)
-                .collaborators(project.getCollaborators())
+                .collaborators(project.getCollaborators() != null ?
+                        project.getCollaborators().stream()
+                                .map(user -> CollaboratorResponse.builder()
+                                        .id(user.getId())
+                                        .fullName(user.getFullName())
+                                        .username(user.getUsername())
+                                        .email(user.getEmail())
+                                        .avatar(user.getAvatar())
+                                        .bio(user.getBio())
+                                        .build())
+                                .collect(Collectors.toList()) : new ArrayList<>())
                 .status(project.getStatus())
                 .priority(project.getPriority())
                 .visibility(project.getVisibility())
