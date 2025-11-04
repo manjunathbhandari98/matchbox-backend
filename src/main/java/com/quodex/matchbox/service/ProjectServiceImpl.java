@@ -2,6 +2,7 @@ package com.quodex.matchbox.service;
 
 import com.quodex.matchbox.Mapper.ProjectMapper;
 import com.quodex.matchbox.dto.request.ProjectRequest;
+import com.quodex.matchbox.dto.response.DeadlineResponse;
 import com.quodex.matchbox.dto.response.ProjectResponse;
 import com.quodex.matchbox.enums.Visibility;
 import com.quodex.matchbox.model.Project;
@@ -16,7 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,8 +87,6 @@ public class ProjectServiceImpl implements ProjectService {
                 .map(Team::getId)
                 .toList();
 
-        log.info("User is part of {} teams", userTeamIds.size());
-
         // Get all visible projects
         List<Project> projects = projectRepository.findAll().stream()
                 .filter(project -> {
@@ -137,6 +138,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional(readOnly = true)
+    public ProjectResponse getProjectBySlug(String slug){
+        Project project = projectRepository.findBySlug(slug);
+        return ProjectMapper.toResponse(project);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<ProjectResponse> getProjectsByTeam(String teamId){
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team Not Found"));
@@ -145,6 +153,54 @@ public class ProjectServiceImpl implements ProjectService {
                 .map(ProjectMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getTotalProjectForUser(String userId) {
+        // Validate user exists
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        // Get all teams the user is part of
+        List<String> userTeamIds = teamRepository.findTeamsByMemberId(userId)
+                .stream()
+                .map(Team::getId)
+                .toList();
+
+        // Filter all projects where the user is involved or can view
+        long totalProjects = projectRepository.findAll()
+                .stream()
+                .filter(project -> {
+                    // Public projects
+                    if (project.getVisibility() == Visibility.PUBLIC) {
+                        return true;
+                    }
+
+                    // Projects created by the user
+                    if (project.getCreatorId().equals(userId)) {
+                        return true;
+                    }
+
+                    // Projects where user is a collaborator
+                    if (project.getCollaborators() != null &&
+                            project.getCollaborators().stream()
+                                    .anyMatch(c -> c.getId().equals(userId))) {
+                        return true;
+                    }
+
+                    // Projects under teams the user is part of
+                    if (project.getTeam() != null &&
+                            userTeamIds.contains(project.getTeam().getId())) {
+                        return true;
+                    }
+
+                    return false;
+                })
+                .count();
+
+        return (int) totalProjects;
+    }
+
 
     @Override
     @Transactional
@@ -220,4 +276,34 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.delete(project);
         log.info("Project deleted successfully");
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DeadlineResponse> getUpcomingProjectDeadlinesForUser(String userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        List<Project> projects = projectRepository.findAll().stream()
+                .filter(project ->
+                        project.getDueDate() != null &&
+                                !project.getDueDate().isBefore(LocalDateTime.now()) &&
+                                (project.getCreatorId().equals(userId)
+                                        || (project.getCollaborators() != null &&
+                                        project.getCollaborators().stream().anyMatch(c -> c.getId().equals(userId))))
+                )
+                .sorted(Comparator.comparing(Project::getDueDate))
+                .toList();
+
+        return projects.stream()
+                .map(project -> new DeadlineResponse(
+                        project.getId(),
+                        project.getName(),
+                        "PROJECT",
+                        project.getDueDate(),
+                        null,
+                        project.getStatus().name().equalsIgnoreCase("COMPLETED")
+                ))
+                .toList();
+    }
+
 }

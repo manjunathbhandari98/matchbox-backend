@@ -1,10 +1,7 @@
 package com.quodex.matchbox.Mapper;
 
 import com.quodex.matchbox.dto.request.TaskRequest;
-import com.quodex.matchbox.dto.response.SubtaskResponse;
-import com.quodex.matchbox.dto.response.TaskAttachmentResponse;
-import com.quodex.matchbox.dto.response.TaskCommentResponse;
-import com.quodex.matchbox.dto.response.TaskResponse;
+import com.quodex.matchbox.dto.response.*;
 import com.quodex.matchbox.enums.ProjectPriority;
 import com.quodex.matchbox.enums.TaskStatus;
 import com.quodex.matchbox.model.*;
@@ -78,14 +75,14 @@ public class TaskMapper {
                 .completedAt(entity.getCompletedAt())
                 .progress(entity.getProgress())
                 .projectId(entity.getProject() != null ? entity.getProject().getId() : null)
-
-                // Convert List<User> -> List<String>
-                .assignedToId(entity.getAssignedTo() != null
-                        ? entity.getAssignedTo().stream()
-                        .map(User::getId)
-                        .collect(Collectors.toList())
-                        : List.of())
-
+                .projectName(entity.getProject() != null ? entity.getProject().getName() : null)
+                .assignedTo(
+                        entity.getAssignedTo() != null
+                                ? entity.getAssignedTo().stream()
+                                .map(u -> new CollaboratorResponse(u.getId(), u.getFullName(),u.getUsername(),u.getEmail(), u.getAvatar(), u.getBio()))
+                                .collect(Collectors.toList())
+                                : List.of()
+                )
                 .createdById(entity.getCreatedBy() != null ? entity.getCreatedBy().getId() : null)
                 .teamId(entity.getTeam() != null ? entity.getTeam().getId() : null)
                 .parentTaskId(entity.getParentTask() != null ? entity.getParentTask().getId() : null)

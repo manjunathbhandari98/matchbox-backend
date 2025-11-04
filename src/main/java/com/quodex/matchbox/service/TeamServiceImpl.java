@@ -117,6 +117,38 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    public Integer getTotalActiveMembersAcrossTeams(String userId) {
+        // Validate user exists
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        // Find all teams where this user is a member OR creator
+        List<Team> userTeams = teamRepository.findAll().stream()
+                .filter(team ->
+                        team.getCreatedBy().equals(userId) ||
+                                (team.getMembers() != null &&
+                                        team.getMembers().stream()
+                                                .anyMatch(member -> member.getUser().getId().equals(userId)))
+                )
+                .toList();
+
+        if (userTeams.isEmpty()) {
+            return 0; // user not in any team
+        }
+
+        // Collect all members (flattened)
+        Set<String> uniqueMemberIds = userTeams.stream()
+                .flatMap(team -> team.getMembers().stream())
+                .filter(member -> member.getStatus() == InvitationStatus.ACCEPTED)
+                .map(member -> member.getUser().getId())
+                .collect(Collectors.toSet());
+
+        // Exclude duplicates (a user might appear in multiple teams)
+        return uniqueMemberIds.size();
+    }
+
+
+    @Override
     public String inviteMemberToTeam(String teamId, String userId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Team not found"));

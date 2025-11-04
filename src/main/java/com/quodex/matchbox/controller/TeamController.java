@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -76,6 +77,13 @@ public class TeamController {
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/users/{userId}/teams/active-members/count")
+    public ResponseEntity<Map<String, Integer>> getActiveMembersCount(@PathVariable String userId) {
+        int count = teamService.getTotalActiveMembersAcrossTeams(userId);
+        return ResponseEntity.ok(Map.of("activeMembers", count));
+    }
+
 
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteTeam(@RequestParam String creatorId,

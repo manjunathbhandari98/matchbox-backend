@@ -11,4 +11,6 @@ public interface ProjectRepository extends JpaRepository<Project, String> {
     List<Project> findByTeam_Id(String teamId);
 
     boolean existsBySlug(String existingSlug);
+
+    Project findBySlug(String slug);
 }

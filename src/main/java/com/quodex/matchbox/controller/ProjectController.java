@@ -34,6 +34,16 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    @GetMapping("{slug}")
+    public ResponseEntity<ProjectResponse> getProjectBySlug(@PathVariable String slug){
+        return ResponseEntity.ok(projectService.getProjectBySlug(slug));
+    }
+
+    @GetMapping("/total-projects/{userId}")
+    public ResponseEntity<Integer> getTotalProjectForUser(@PathVariable String userId){
+        return ResponseEntity.ok(projectService.getTotalProjectForUser(userId));
+    }
+
     @PutMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable String projectId,
                                                          @RequestBody ProjectRequest request){

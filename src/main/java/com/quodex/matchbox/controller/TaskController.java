@@ -1,6 +1,8 @@
 package com.quodex.matchbox.controller;
 
 import com.quodex.matchbox.dto.request.TaskRequest;
+import com.quodex.matchbox.dto.response.ProjectResponse;
+import com.quodex.matchbox.dto.response.TaskProgressSummaryResponse;
 import com.quodex.matchbox.dto.response.TaskResponse;
 import com.quodex.matchbox.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ public class TaskController {
         return ResponseEntity.ok(taskService.createTask(request));
     }
 
-    @GetMapping("/my-task/{userID}")
+    @GetMapping("/my-task/{userId}")
     public ResponseEntity<List<TaskResponse>> getMyTasks(@PathVariable String userId){
         return ResponseEntity.ok(taskService.getMyTasks(userId));
     }
@@ -30,6 +32,23 @@ public class TaskController {
     public ResponseEntity<List<TaskResponse>> getAllTasks(@PathVariable String userId){
         return ResponseEntity.ok(taskService.getAllTasksFromAssignedProjects(userId));
     }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<TaskResponse>> getTaskByProject(@PathVariable String projectId){
+        return ResponseEntity.ok(taskService.getProjectsByProject(projectId));
+    }
+
+    @GetMapping("total-task/completed/{userId}")
+    public ResponseEntity<Integer> getTotalCompletedTaskForuser(@PathVariable String userId){
+        return ResponseEntity.ok(taskService.getTotalCompletedTasksForUser(userId));
+    }
+
+    @GetMapping("/users/{userId}/tasks/in-progress/summary")
+    public ResponseEntity<TaskProgressSummaryResponse> getInProgressSummary(@PathVariable String userId) {
+        TaskProgressSummaryResponse response = taskService.getInProgressTaskSummaryForUser(userId);
+        return ResponseEntity.ok(response);
+    }
+
 
     @DeleteMapping("/{taskId}")
     public ResponseEntity<String> deleteTask(@PathVariable String taskId){

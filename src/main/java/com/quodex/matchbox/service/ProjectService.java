@@ -1,6 +1,7 @@
 package com.quodex.matchbox.service;
 
 import com.quodex.matchbox.dto.request.ProjectRequest;
+import com.quodex.matchbox.dto.response.DeadlineResponse;
 import com.quodex.matchbox.dto.response.ProjectResponse;
 
 import java.util.List;
@@ -18,4 +19,10 @@ public interface ProjectService {
     void deleteProject(String projectId);
 
     List<ProjectResponse> getProjectsByTeam(String teamId);
+
+    ProjectResponse getProjectBySlug(String slug);
+
+    Integer getTotalProjectForUser(String userId);
+
+    List<DeadlineResponse> getUpcomingProjectDeadlinesForUser(String userId);
 }

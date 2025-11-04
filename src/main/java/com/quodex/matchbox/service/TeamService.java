@@ -31,4 +31,5 @@ public interface TeamService {
     TeamResponse updateMemberRole(String teamId, String memberId, Role role);
 
     TeamResponse addMemberToTeam(String teamId, AddMemberRequest request);
+    Integer getTotalActiveMembersAcrossTeams(String userId);
 }

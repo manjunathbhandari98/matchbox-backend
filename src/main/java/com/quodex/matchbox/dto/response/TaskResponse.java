@@ -23,7 +23,8 @@ public class TaskResponse {
     private LocalDateTime completedAt;
     private Integer progress;
     private String projectId;
-    private List<String> assignedToId;
+    private String projectName;
+    private List<CollaboratorResponse> assignedTo;
     private String createdById;
     private String teamId;
     private String parentTaskId;
