@@ -1,9 +1,11 @@
 package com.quodex.matchbox.controller;
 
 import com.quodex.matchbox.dto.request.TaskRequest;
+import com.quodex.matchbox.dto.request.TaskStatusUpdateRequest;
 import com.quodex.matchbox.dto.response.ProjectResponse;
 import com.quodex.matchbox.dto.response.TaskProgressSummaryResponse;
 import com.quodex.matchbox.dto.response.TaskResponse;
+import com.quodex.matchbox.enums.TaskStatus;
 import com.quodex.matchbox.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +49,19 @@ public class TaskController {
     public ResponseEntity<TaskProgressSummaryResponse> getInProgressSummary(@PathVariable String userId) {
         TaskProgressSummaryResponse response = taskService.getInProgressTaskSummaryForUser(userId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{slug}")
+    public ResponseEntity<TaskResponse> getTaskBySlug(@PathVariable String slug){
+        return ResponseEntity.ok(taskService.getTaskBySlug(slug));
+    }
+
+    @PutMapping("/{taskId}/status")
+    public ResponseEntity<TaskResponse> updateTaskStatus(
+            @PathVariable String taskId,
+            @RequestBody TaskStatusUpdateRequest request
+    ) {
+        return ResponseEntity.ok(taskService.updateTaskStatus(taskId, request.getStatus()));
     }
 
 

@@ -15,6 +15,7 @@ import java.util.Set;
 public class TaskResponse {
     private String id;
     private String title;
+    private String slug;
     private String description;
     private TaskStatus status;
     private ProjectPriority priority;

@@ -14,6 +14,7 @@ import com.quodex.matchbox.repository.ProjectRepository;
 import com.quodex.matchbox.repository.TaskRepository;
 import com.quodex.matchbox.repository.TeamRepository;
 import com.quodex.matchbox.repository.UserRepository;
+import com.quodex.matchbox.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,12 @@ public class TaskServiceImpl implements TaskService {
         // Fetch project
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found with id: " + request.getProjectId()));
+
+
+        String projectName = project.getName();
+        String slugString = request.getTitle()+"-"+projectName;
+        String slug = SlugUtils.generateUniqueSlug(slugString, taskRepository::existsBySlug);
+        task.setSlug(slug);
 
         // --- Update project task counters ---
         project.setTotalTasks(project.getTotalTasks() + 1);
@@ -178,7 +185,34 @@ public class TaskServiceImpl implements TaskService {
     }
 
 
+    @Override
+    public TaskResponse getTaskBySlug(String slug){
+        Task task = taskRepository.findBySlug(slug);
+        return TaskMapper.toResponse(task);
+    }
 
+    @Override
+    public TaskResponse updateTaskStatus(String taskId, TaskStatus newStatus) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        TaskStatus oldStatus = task.getStatus();
+        task.setStatus(newStatus);
+
+        // Update project stats
+        Project project = task.getProject();
+        if (project != null) {
+            if (oldStatus != TaskStatus.COMPLETED && newStatus == TaskStatus.COMPLETED) {
+                project.setCompletedTasks(project.getCompletedTasks() + 1);
+            } else if (oldStatus == TaskStatus.COMPLETED && newStatus != TaskStatus.COMPLETED) {
+                project.setCompletedTasks(Math.max(0, project.getCompletedTasks() - 1));
+            }
+            projectRepository.save(project);
+        }
+
+        Task updatedTask = taskRepository.save(task);
+        return TaskMapper.toResponse(updatedTask);
+    }
 
     @Override
     public void deleteTask(String taskId){

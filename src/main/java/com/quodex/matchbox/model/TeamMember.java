@@ -1,21 +1,20 @@
 package com.quodex.matchbox.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.quodex.matchbox.enums.InvitationStatus;
 import com.quodex.matchbox.enums.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "team_members")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"user", "team"})
+@EqualsAndHashCode(exclude = {"user", "team"})
 public class TeamMember {
 
     @Id
@@ -24,6 +23,7 @@ public class TeamMember {
 
     @ManyToOne
     @JoinColumn(name = "team_id", nullable = false)
+    @JsonIgnore // prevents infinite recursion
     private Team team;
 
     @ManyToOne

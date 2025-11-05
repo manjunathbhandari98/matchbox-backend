@@ -67,6 +67,7 @@ public class TaskMapper {
         return TaskResponse.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
+                .slug(entity.getSlug())
                 .description(entity.getDescription())
                 .status(entity.getStatus())
                 .priority(entity.getPriority())
