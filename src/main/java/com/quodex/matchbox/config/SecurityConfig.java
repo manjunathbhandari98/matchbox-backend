@@ -25,7 +25,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtFilter;
 
-    @Value("${frontend.url}")
+    @Value("${frontend.urls}")
     private String frontendUrls;
 
     // --- Core Security Filter Chain ---
