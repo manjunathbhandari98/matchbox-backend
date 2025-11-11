@@ -3,6 +3,7 @@ package com.quodex.matchbox.config;
 import com.quodex.matchbox.jwt.JwtAuthenticationFilter;
 import com.quodex.matchbox.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,9 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtFilter;
 
+    @Value("${frontend.url}")
+    private String frontendUrls;
+
     // --- Core Security Filter Chain ---
 
     @Bean
@@ -32,7 +36,7 @@ public class SecurityConfig {
                 // Enable CORS using our custom configuration
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new org.springframework.web.cors.CorsConfiguration();
-                    config.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+                    config.setAllowedOrigins(java.util.List.of(frontendUrls));
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(java.util.List.of("*"));
                     config.setAllowCredentials(true);
